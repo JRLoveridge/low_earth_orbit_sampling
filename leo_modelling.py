@@ -527,7 +527,7 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
         start_time = start_times[rank]
         stop_time = stop_times[rank]
 
-    print("I am rank '{}' of '{}' with start_time '{}' and stop_time '{}'".format(rank, size, start_time, stop_time))
+        print("I am rank '{}' of '{}' with start_time '{}' and stop_time '{}'".format(rank, size, start_time, stop_time))
 
     #global times for consistent file naming across workers.
     grid.set_times(global_start_time, global_stop_time, start_time)
@@ -544,7 +544,12 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
         output = satellite.propagate_in_time(time_to_propagate, orbit_pts)
         grid.bin_and_save(output)
 
-        print(iters)
+        if mpi_comm is not None:
+            if rank == 0:
+                print(np.round(100*(satellite.time_start - start_time) / (stop_time - start_time), 2), '%')
+        else:
+            print(np.round(100*(satellite.time_start - start_time) / (stop_time - start_time), 2), '%')
+
         iters +=1
     grid.save_final() #save whatever is in memory after the loop ends.
 
@@ -562,13 +567,13 @@ if __name__ == '__main__':
     def model(**kwargs):
         return cycle(amplitude=1.0, period=30.0, **kwargs)
 
-    grid = Grid(np.linspace(-90, 90, 181), np.linspace(-180.0,180.0, 361),
+    grid = Grid(np.linspace(-90, 90, 1801), np.linspace(-180.0,180.0, 3601),
                                            save_period=1.0)
 
     #The pre-made MISR/MODIS have extremely high temporal sampling to simulate high resolution measurements
     #as such they are quite intensive in both memory and processing. Such a large number of simulated pixels
     #is only necessary for the highest of resolution climate marble grids (0.05 degrees)
-    instruments = Instrument(330.0, 1.0/50000, 100, model=model, descending_only=True)
-    #instruments=[Instrument.MISR_An(model=model, descending_only=True)]
+    #instruments = Instrument(330.0, 1.0/50000, 100, model=model, descending_only=True)
+    instruments=[Instrument.MISR_An(model=model, descending_only=True)]
     Terra.add_instruments(instruments)
-    driver(0.0, 30.0, grid, Terra, '/Users/jesserl2/Documents/test/', mpi_comm=comm) #set to None if no mpi
+    driver(0.0, 30.0, grid, Terra, '/Users/jesserl2/Documents/test/', mpi_comm=None)#comm) #set to None if no mpi
