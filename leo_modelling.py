@@ -129,7 +129,7 @@ class Satellite(object):
         new_lambs = []
         new_t = []
         for (time_min, time_max), lamb_interp in zip(self.time_minmaxes, self.lamb_interps):
-            
+
             approximate = int((time_max - time_min)/sampling_interval)
             t = np.linspace(time_min + sampling_interval, time_max, approximate)
             new_lambs.append(lamb_interp(t))
@@ -428,7 +428,7 @@ class Grid(object):
             }
         )
         name = 'climate_marble_{}_'.format(key) + '{}'.format(self._period_counter[key]).zfill(6) + '.nc'
-        
+
         to_save.to_netcdf(os.path.join(self._save_directory, name), mode='w')
 
     def _bin_data(self, key, instrument, digitized_time, period):
@@ -492,15 +492,15 @@ def cycle(amplitude=1.0,period=30.0, **kwargs):
     local_angle = get_local_time(kwargs['longitude'], kwargs['time'])
     return amplitude*np.expand_dims(np.cos(local_angle + day*2*np.pi/period),0)
 
-def linear_in_time(gradient=1.0, **kwargs)
+def linear_in_time(gradient=1.0, **kwargs):
     """
     TODO UNTESTED
     """
     local_angle = get_local_time(kwargs['longitude'], kwargs['time'])
     local_time = (np.rad2deg(local_angle)/15.0 + 12.0)/24.0
-    
+
     return local_time + gradient*day
-    
+
 #---------------------------------------------------------------------------------
 #------------------------------ UTILITY ------------------------------------------
 #---------------------------------------------------------------------------------
@@ -528,7 +528,7 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
         stop_time = stop_times[rank]
 
     print("I am rank '{}' of '{}' with start_time '{}' and stop_time '{}'".format(rank, size, start_time, stop_time))
-    
+
     #global times for consistent file naming across workers.
     grid.set_times(global_start_time, global_stop_time, start_time)
     grid.set_save_directory(save_directory)
@@ -543,7 +543,7 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
             time_to_propagate = stop_time - satellite.time_start
         output = satellite.propagate_in_time(time_to_propagate, orbit_pts)
         grid.bin_and_save(output)
-        
+
         print(iters)
         iters +=1
     grid.save_final() #save whatever is in memory after the loop ends.
@@ -551,7 +551,7 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
 if __name__ == '__main__':
 
     #comment out if no MPI
-    import mpi4py.MPI as MPI 
+    import mpi4py.MPI as MPI
     comm = MPI.COMM_WORLD
 
     Terra = Satellite.Terra()
