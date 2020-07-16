@@ -468,7 +468,7 @@ def get_local_time(longitude, time):
     import copy
     new_longitude = copy.deepcopy(longitude)
 
-    day = time % 365
+
     excess = time - np.floor(time)
 
     solar_time =(excess*24.0*60.0 + 4*np.rad2deg(new_longitude + np.pi))/60
@@ -498,8 +498,17 @@ def linear_in_time(gradient=1.0, **kwargs):
     """
     local_angle = get_local_time(kwargs['longitude'], kwargs['time'])
     local_time = (np.rad2deg(local_angle)/15.0 + 12.0)/24.0
+    day = np.expand_dims(kwargs['time'] % 365,0)
+    out = local_time + gradient*day
+    
+    return out
 
-    return local_time + gradient*day
+def linear_in_vza(gradient=1.0, **kwargs):
+    """
+    TODO
+    """
+    data = np.expand_dims(gradient*kwargs['sensor_zenith'],0)
+    return data
 
 #---------------------------------------------------------------------------------
 #------------------------------ UTILITY ------------------------------------------
@@ -565,7 +574,7 @@ if __name__ == '__main__':
     #kwargs will be passed from the satellite for all of the lat/lon/time/solar_zenith/viewing_zenith etc
     #information that may be necessary to evaluate the model.
     def model(**kwargs):
-        return cycle(amplitude=1.0, period=30.0, **kwargs)
+        return linear_in_time(gradient=1.0, **kwargs)
 
     grid = Grid(np.linspace(-90, 90, 1801), np.linspace(-180.0,180.0, 3601),
                                            save_period=1.0)
@@ -576,4 +585,4 @@ if __name__ == '__main__':
     #instruments = Instrument(330.0, 1.0/50000, 100, model=model, descending_only=True)
     instruments=[Instrument.MISR_An(model=model, descending_only=True)]
     Terra.add_instruments(instruments)
-    driver(0.0, 30.0, grid, Terra, '/Users/jesserl2/Documents/test/', mpi_comm=None)#comm) #set to None if no mpi
+    driver(0.0, 16.0, grid, Terra, '/Users/jesserl2/Documents/test_time/', mpi_comm=None)#comm) #set to None if no mpi
