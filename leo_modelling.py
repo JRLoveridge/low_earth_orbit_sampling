@@ -574,7 +574,7 @@ if __name__ == '__main__':
     #kwargs will be passed from the satellite for all of the lat/lon/time/solar_zenith/viewing_zenith etc
     #information that may be necessary to evaluate the model.
     def model(**kwargs):
-        return linear_in_time(gradient=1.0, **kwargs)
+        return linear_in_vza(gradient=1.0, **kwargs)
 
     grid = Grid(np.linspace(-90, 90, 1801), np.linspace(-180.0,180.0, 3601),
                                            save_period=1.0)
@@ -583,6 +583,6 @@ if __name__ == '__main__':
     #as such they are quite intensive in both memory and processing. Such a large number of simulated pixels
     #is only necessary for the highest of resolution climate marble grids (0.05 degrees)
     #instruments = Instrument(330.0, 1.0/50000, 100, model=model, descending_only=True)
-    instruments=[Instrument.MISR_An(model=model, descending_only=True)]
+    instruments=[Instrument.MODIS(model=model, descending_only=True)]
     Terra.add_instruments(instruments)
-    driver(0.0, 16.0, grid, Terra, '/Users/jesserl2/Documents/test_time/', mpi_comm=None)#comm) #set to None if no mpi
+    driver(0.0, 16.0, grid, Terra, '/data/keeling/a/jesserl2/c/MODIS_16day_linear_in_time', mpi_comm=comm) #set to None if no mpi
