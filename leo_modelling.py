@@ -230,7 +230,9 @@ class Instrument(object):
             brng = np.arctan2(np.sqrt(np.sin(self.satellite.inclination)**2 - np.sin(psi)**2),
                             np.cos(self.satellite.inclination) - omega*np.cos(psi)**2)
             if not self.descending_only:
-                pass
+                import warnings
+                #brng needs to be changed for the ascending node.
+                warnings.warn('The swath of the ascending node is not properly modeled. See Line 236')
                 #TODO treat bearing properly for ascending node.
                 #brng[np.where()]
 
