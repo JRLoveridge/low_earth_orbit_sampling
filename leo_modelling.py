@@ -54,8 +54,6 @@ class Satellite(object):
         #update starting time
         self.tAN = self.tAN + time_start
         self.lamb0 = self.lamb[-1]
-        print(self.tAN, self.lamb0)
-
 
     def propagate_in_time(self, time_length, npts):
         """
@@ -236,7 +234,7 @@ class Instrument(object):
                 #TODO treat bearing properly for ascending node.
                 #brng[np.where()]
 
-
+            #lat/lon calculation is the computational bottleneck with increasing pixel numbers.
             lats = np.arcsin( np.sin(psi)*np.cos(earth_angles) + np.cos(psi)*np.sin(earth_angles)*np.cos(brng))
             lons = lamb + np.arctan2(np.sin(brng)*np.sin(earth_angles)*np.cos(psi),
                                         np.cos(earth_angles) - np.sin(psi)*np.sin(lats))
@@ -429,7 +427,7 @@ class Grid(object):
             }
         )
         name = 'climate_marble_{}_'.format(key) + '{}'.format(self._period_counter[key]).zfill(6) + '.nc'
-
+        
         to_save.to_netcdf(os.path.join(self._save_directory, name), mode='w')
 
     def _bin_data(self, key, instrument, digitized_time, period):
@@ -485,18 +483,26 @@ def get_local_time(longitude, time):
     return angle
 
 def cycle(amplitude=1.0,period=30.0, **kwargs):
-
+    """
+    TODO
+    """
     day = kwargs['time'] % 365
 
     local_angle = get_local_time(kwargs['longitude'], kwargs['time'])
     return amplitude*np.expand_dims(np.cos(local_angle + day*2*np.pi/period),0)
 
-
+def linear_in_time(gradient=1.0, **kwargs)
+    """
+    TODO UNTESTED
+    """
+    local_angle = get_local_time(kwargs['longitude'], kwargs['time'])
+    local_time = (np.rad2deg(local_angle)/15.0 + 12.0)/24.0
+    
+    return local_time + gradient*day
+    
 #---------------------------------------------------------------------------------
 #------------------------------ UTILITY ------------------------------------------
 #---------------------------------------------------------------------------------
-
-
 
 def driver(start_time, stop_time, grid, satellite, save_directory,
                  orbit_pts=50000, mpi_comm=None):
@@ -520,36 +526,38 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
         start_time = start_times[rank]
         stop_time = stop_times[rank]
 
-    print(rank, start_time, stop_time)
+    print("I am rank '{}' of '{}' with start_time '{}' and stop_time '{}'".format(rank, size, start_time, stop_time))
+    
     #global times for consistent file naming across workers.
     grid.set_times(global_start_time, global_stop_time, start_time)
     grid.set_save_directory(save_directory)
     satellite.set_start_time(start_time)
-    import time as TIME
+
     iters = 0
     while satellite.tAN < stop_time:
-        time1 = TIME.time()
+
         time_to_propagate = 1.0/satellite.mu #default to one orbit. Modifying this might improve efficiency
                                             #by only storing smaller segments at once. Untested with other values.
         if stop_time - satellite.tAN < time_to_propagate:
             time_to_propagate = stop_time - satellite.tAN
         output = satellite.propagate_in_time(time_to_propagate, orbit_pts)
-        #print(grid._period_counter['instrument_0'])
         grid.bin_and_save(output)
-        print(iters,grid._period_counter['instrument_0'], rank, TIME.time() - time1)
+        
+        print(iters, rank)
         iters +=1
     grid.save_final() #save whatever is in memory after the loop ends.
 
 if __name__ == '__main__':
 
-    import mpi4py.MPI as MPI
+    #comment out if no MPI
+    import mpi4py.MPI as MPI 
     comm = MPI.COMM_WORLD
 
     Terra = Satellite.Terra()
 
     #wrap one of the model functions with any necessary parameters.
     #kwargs will be passed from the satellite for all of the lat/lon/time/solar_zenith/viewing_zenith etc
-    #information that may be necessary
+    #information that may be necessary to evaluate the model.
     def model(**kwargs):
         return cycle(amplitude=1.0, period=30.0, **kwargs)
 
@@ -559,7 +567,7 @@ if __name__ == '__main__':
     #The pre-made MISR/MODIS have extremely high temporal sampling to simulate high resolution measurements
     #as such they are quite intensive in both memory and processing. Such a large number of simulated pixels
     #is only necessary for the highest of resolution climate marble grids (0.05 degrees)
-    instruments = Instrument(330.0, 1.0/50000, 30, model=model, descending_only=True)
+    instruments = Instrument(330.0, 1.0/50000, 100, model=model, descending_only=True)
     #instruments=[Instrument.MISR_An(model=model, descending_only=True)]
     Terra.add_instruments(instruments)
-    driver(0.0, 30.0, grid, Terra, '/Users/jesserl2/Documents/test/', mpi_comm=comm)
+    driver(0.0, 30.0, grid, Terra, '/Users/jesserl2/Documents/test/', mpi_comm=comm) #set to None if no mpi
