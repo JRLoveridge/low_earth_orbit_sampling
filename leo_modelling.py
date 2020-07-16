@@ -537,8 +537,8 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
     iters = 0
     while satellite.time_start < stop_time:
 
-        time_to_propagate = 1.0/satellite.mu #default to one orbit. Modifying this might improve efficiency
-                                            #by only storing smaller segments at once. Untested with other values.
+        time_to_propagate = 5.0/(24.0*60.0) #default to 5 minutes to accomodate very large swathes
+                                            #of 1 km MODIS pixels. May be modified.
         if stop_time - satellite.time_start < time_to_propagate:
             time_to_propagate = stop_time - satellite.time_start
         output = satellite.propagate_in_time(time_to_propagate, orbit_pts)
