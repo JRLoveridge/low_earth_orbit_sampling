@@ -28,7 +28,7 @@ import os
 
 class Satellite(object):
 
-    def __init__(self, inclination, altitude, period):
+    def __init__(self, inclination, altitude, period, tAN=0.0, lamb0=0.0):
         """
         TODO
         """
@@ -36,9 +36,9 @@ class Satellite(object):
         self.mean_motion = self.mu*2*np.pi
         self.inclination = np.deg2rad(inclination)
         self.altitude = altitude*1000
-        self.tAN = 0.0
+        self.tAN = tAN
         self.R = 6371*1e3
-        self.lamb0 = 0.0
+        self.lamb0 = lamb0
         self.rho = self.R/(self.altitude+self.R)
 
         self._instruments = OrderedDict()
@@ -49,17 +49,16 @@ class Satellite(object):
 
     def set_start_time(self, time_start):
 
-        self._calculate_ground_track(t=np.linspace(self.tAN, self.tAN + time_start, 2),
+        self._calculate_ground_track(t=np.linspace(0.0, time_start, 2),
                                     init_interp=False)
         #update starting time
-        self.tAN = self.tAN + time_start
-        self.lamb0 = self.lamb[-1]
+        self.time_start = time_start
 
     def propagate_in_time(self, time_length, npts):
         """
         TODO
         """
-        self._calculate_ground_track(t=np.linspace(self.tAN, self.tAN + time_length, npts))
+        self._calculate_ground_track(t=np.linspace(self.time_start, self.time_start + time_length, npts))
 
         output = OrderedDict()
         for name, instrument in self._instruments.items():
@@ -68,8 +67,7 @@ class Satellite(object):
                            'data': data}
 
         #update starting time
-        self.tAN = self.tAN + time_length
-        self.lamb0 = self.lamb[-1]
+        self.time_start += time_length
 
         return output
 
@@ -131,12 +129,13 @@ class Satellite(object):
         new_lambs = []
         new_t = []
         for (time_min, time_max), lamb_interp in zip(self.time_minmaxes, self.lamb_interps):
-            t = np.arange(time_min, time_max , sampling_interval)
+            
+            approximate = int((time_max - time_min)/sampling_interval)
+            t = np.linspace(time_min + sampling_interval, time_max, approximate)
             new_lambs.append(lamb_interp(t))
             new_t.append(t)
 
         new_t = np.concatenate(new_t, axis=-1)
-
         new_psi = self.psi_interp(new_t)
         new_lamb = np.concatenate(new_lambs, axis=-1)
 
@@ -536,16 +535,16 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
     satellite.set_start_time(start_time)
 
     iters = 0
-    while satellite.tAN < stop_time:
+    while satellite.time_start < stop_time:
 
         time_to_propagate = 1.0/satellite.mu #default to one orbit. Modifying this might improve efficiency
                                             #by only storing smaller segments at once. Untested with other values.
-        if stop_time - satellite.tAN < time_to_propagate:
-            time_to_propagate = stop_time - satellite.tAN
+        if stop_time - satellite.time_start < time_to_propagate:
+            time_to_propagate = stop_time - satellite.time_start
         output = satellite.propagate_in_time(time_to_propagate, orbit_pts)
         grid.bin_and_save(output)
         
-        print(iters, rank)
+        print(iters)
         iters +=1
     grid.save_final() #save whatever is in memory after the loop ends.
 
