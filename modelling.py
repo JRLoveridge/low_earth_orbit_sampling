@@ -542,9 +542,15 @@ def driver(start_time, stop_time, grid, satellite, save_directory,
 
         start_time = start_times[rank]
         stop_time = stop_times[rank]
+        
+        if rank == 0:
+            if not os.path.isdir(save_directory):
+                os.makedirs(save_directory)
 
         print("I am rank '{}' of '{}' with start_time '{}' and stop_time '{}'".format(rank, size, start_time, stop_time))
-
+    else:
+        if not os.path.isdir(save_directory):
+            os.makedirs(save_directory)
     #global times for consistent file naming across workers.
     grid.set_times(global_start_time, global_stop_time, start_time)
     grid.set_save_directory(save_directory)
