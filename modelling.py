@@ -510,6 +510,13 @@ def linear_in_vza(gradient=1.0, **kwargs):
     data = np.expand_dims(gradient*kwargs['sensor_zenith'],0)
     return data
 
+def pseudo_glint(pos=20.0,width=15.0, **kwargs):
+    """
+    TODO
+    """
+    return np.expand_dims(np.exp( - (kwargs['vza'] - pos)**2 /(15.0)**2),0)
+
+
 #---------------------------------------------------------------------------------
 #------------------------------ UTILITY ------------------------------------------
 #---------------------------------------------------------------------------------
