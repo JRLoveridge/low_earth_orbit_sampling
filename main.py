@@ -24,8 +24,5 @@ if __name__ == '__main__':
     #instruments = Instrument(330.0, 1.0/50000, 100, model=model, descending_only=True)
     instruments=[Instrument.MODIS(model=model, descending_only=True)]
     Terra.add_instruments(instruments)
-    name = '/data/keeling/a/jesserl2/c/MODIS_16day_pseudo_glint'
-    if not os.path.isdir(name):
-       os.makedirs(name)
 
-    driver(0.0, 16.0, grid, Terra, name, mpi_comm=comm) #set to None if no mpi
+    driver(0.0, 16.0, grid, Terra, '/data/keeling/a/jesserl2/c/MODIS_16day_pseudo_glint', mpi_comm=comm) #set to None if no mpi
