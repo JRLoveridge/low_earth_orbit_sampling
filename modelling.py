@@ -514,7 +514,7 @@ def pseudo_glint(pos=20.0,width=15.0, **kwargs):
     """
     TODO
     """
-    return np.expand_dims(np.exp( - (kwargs['vza'] - pos)**2 /(15.0)**2),0)
+    return np.expand_dims(np.exp( - (kwargs['sensor_zenith'] - pos)**2 /(15.0)**2),0)
 
 
 #---------------------------------------------------------------------------------
