@@ -25,4 +25,4 @@ if __name__ == '__main__':
     instruments=[Instrument.MODIS(model=model, descending_only=True)]
     Terra.add_instruments(instruments)
 
-    driver(0.0, 16.0, grid, Terra, '/data/keeling/a/jesserl2/c/MODIS_16day_pseudo_glint', mpi_comm=comm) #set to None if no mpi
+    driver(0.0, 365, grid, Terra, '/data/keeling/a/jesserl2/c/MODIS_1year_pseudo_glint', mpi_comm=comm) #set to None if no mpi
