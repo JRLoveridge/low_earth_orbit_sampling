@@ -45,8 +45,12 @@ class Satellite(object):
 
     @classmethod
     def Terra(cls):
-        return cls(inclination=98.2098, altitude=705, period=98.8)
+        return cls(inclination=98.208, altitude=704.2749356577315, period=98.8)
 
+    @classmethod
+    def TerraExactRecurrence(cls):
+        return cls(inclination=98.208, altitude=704.2749356577315, period=98.88412017167381)
+    
     def set_start_time(self, time_start):
 
         self._calculate_ground_track(t=np.linspace(0.0, time_start, 2),
@@ -510,12 +514,21 @@ def linear_in_vza(gradient=1.0, **kwargs):
     data = np.expand_dims(gradient*kwargs['sensor_zenith'],0)
     return data
 
-def pseudo_glint(pos=20.0,width=15.0, **kwargs):
+def pseudo_glint_vza_only(pos=20.0,width=15.0, **kwargs):
     """
     TODO
     """
     return np.expand_dims(np.exp( - (kwargs['sensor_zenith'] - np.deg2rad(pos))**2 /(np.deg2rad(width))**2),0)
 
+def pseudo_glint(amplitude=1.0, width=12.0, **kwargs):
+    
+    scat_angle = np.arccos( np.cos(kwargs['solar_zenith']*np.cos(kwargs['sensor_zenith']) + 
+                                  np.sin(kwargs['solar_zenith'])*np.sin(kwargs['sensor_zenith'])*
+                                  np.cos(kwargs['sensor_azimuth'] - kwargs['solar_azimuth'])))
+    
+    glint_refl = amplitude*np.exp( - np.rad2deg(scat_angle)**2 /(width**2))
+
+    return np.expand_dims(glint_refl, 0)
 
 #---------------------------------------------------------------------------------
 #------------------------------ UTILITY ------------------------------------------
