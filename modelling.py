@@ -108,7 +108,7 @@ class Satellite(object):
         self.psi_interp = interp1d(self.t, self.psi, kind='linear', copy=False, bounds_error=False,
                                  assume_sorted=True)
         self.lamb_interps = []
-        split_inds = np.where(np.abs(np.diff(Terra.lamb)) > np.pi)[0] + 1
+        split_inds = np.where(np.abs(np.diff(self.lamb)) > np.pi)[0] + 1
         split_lamb = np.split(self.lamb, split_inds)
         split_time = np.split(self.t, split_inds)
 
