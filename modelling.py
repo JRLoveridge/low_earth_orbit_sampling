@@ -45,10 +45,10 @@ class Satellite(object):
 
     @classmethod
     def Terra(cls):
-        return cls(inclination=98.208, altitude=704.2749356577315, period=98.8)
+        return cls(inclination=98.208, altitude=704.2749356577315, period=98.88)
 
     @classmethod
-    def TerraExactRecurrence(cls):
+    def TerraFrozen(cls):
         return cls(inclination=98.208, altitude=704.2749356577315, period=98.88412017167381)
     
     def set_start_time(self, time_start):
