@@ -522,7 +522,7 @@ def pseudo_glint_vza_only(pos=20.0,width=15.0, **kwargs):
 
 def pseudo_glint(amplitude=1.0, width=12.0, **kwargs):
     
-    scat_angle = np.arccos( np.cos(kwargs['solar_zenith']*np.cos(kwargs['sensor_zenith']) + 
+    scat_angle = np.arccos( np.cos(kwargs['solar_zenith'])*np.cos(kwargs['sensor_zenith']) + 
                                   np.sin(kwargs['solar_zenith'])*np.sin(kwargs['sensor_zenith'])*
                                   np.cos(kwargs['sensor_azimuth'] - kwargs['solar_azimuth'])))
     
